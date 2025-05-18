@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Voice Assistant</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Ask Me Anything</h1>
+  <button onclick="startListening()">Speak</button>
+  <p id="response"></p>
+
+  <script>
+    const apiKey = "YOUR_OPENAI_API_KEY";
+
+    function startListening() {
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.onresult = async (event) => {
+        const text = event.results[0][0].transcript;
+        const reply = await getAIResponse(text);
+        speak(reply);
+        document.getElementById("response").innerText = reply;
+      };
+      recognition.start();
+    }
+
+    async function getAIResponse(prompt) {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
